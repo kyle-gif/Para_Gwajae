@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login and Register</title>
+  <link rel="stylesheet" href="/pico-main/css/pico.sand.min.css">
+  <style>
+    div {
+      margin-top: 50px;
+    }
+  </style>
+</head>
+<body>
+<div id="register">
+  <h1>Register</h1>
+  <form method="post" action="/register">
+    <label for="register-username">Username:</label>
+    <input type="text" id="register-username" name="username" required>
+    <br>
+    <label for="register-password">Password:</label>
+    <input type="password" id="register-password" name="password" required>
+    <br>
+    <button type="submit">Register</button>
+  </form>
+</div>
+<div id="login">
+  <h1>Login</h1>
+  <form id="login-form" onsubmit="handleLogin(event)">
+    <label for="login-username">Username:</label>
+    <input type="text" id="login-username" name="username" required>
+    <br>
+    <label for="login-password">Password:</label>
+    <input type="password" id="login-password" name="password" required>
+    <br>
+    <button type="submit">Login</button>
+  </form>
+</div>
+<div id="delete">
+  <h1>Delete</h1>
+  <form id="delete-form" onsubmit="handleDelete(event)">
+    <label for="delete-username">Username:</label>
+    <input type="text" id="delete-username" name="username" required>
+    <br>
+    <label for="delete-password">Password:</label>
+    <input type="password" id="delete-password" name="password" required>
+    <br>
+    <button type="submit">Delete</button>
+  </form>
+</div>
+<div id="aichat">
+  <h1>Chat With ParaChan</h1>
+  <form id="chat" onsubmit="sendMessage(event)">
+    <input type="text" id="prompt" name="prompt" required>
+    <button type="submit">Send</button>
+  </form>
+  <div id="message">Waiting for message...</div>
+</div>
+<script>
+  const messageElement = document.getElementById("message");
+  const ws = new WebSocket("ws://127.0.0.1:8000/ws");
+
+  ws.onmessage = function(event) {
+    const message = event.data;
+    messageElement.textContent = message;
+    console.log("Message from server:", message);
+  };
+
+  ws.onclose = function(event) {
+    messageElement.textContent = "Connection closed";
+    console.error("WebSocket closed:", event);
+  };
+
+  ws.onerror = function(event) {
+    messageElement.textContent = "Error occurred";
+    console.error("WebSocket error:", event);
+  };
+
+  function sendMessage(event) {
+    event.preventDefault();
+    const form = document.getElementById('chat');
+    const formData = new FormData(form);
+    const prompt = formData.get('prompt');
+    ws.send(prompt);
+  }
+
+  async function handleLogin(event) {
+    event.preventDefault();
+    const form = document.getElementById('login-form');
+    const formData = new FormData(form);
+    const username = formData.get('username');
+    const password = formData.get('password');
+
+    const response = await fetch('/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({ 'username': username, 'password': password })
+    });
+
+    const result = await response.json();
+
+    if (response.status === 200) {
+      alert("Login successful");
+      window.location.href = "/";
+    } else {
+      alert(result.detail);
+    }
+  }
+
+  async function handleDelete(event) {
+    event.preventDefault();
+    const form = document.getElementById('delete-form');
+    const formData = new FormData(form);
+    const username = formData.get('username');
+    const password = formData.get('password');
+
+    const response = await fetch('/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({ 'username': username, 'password': password })
+    });
+
+    const result = await response.json();
+
+    if (response.status === 200) {
+      alert("User deleted successfully");
+      window.location.href = "/";
+    } else {
+      alert(result.detail);
+    }
+  }
+</script>
+</body>
+</html>
