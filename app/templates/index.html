@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Login and Register</title>
-  <link rel="stylesheet" href="/pico-main/css/pico.sand.min.css">
-  <style>
-    div {
-      margin-top: 50px;
-    }
-  </style>
+  <link rel="stylesheet" href="/app/static/pico-main/css/pico.min.css" />
+<!--  <style>-->
+<!--    div {-->
+<!--      margin-top: 50px;-->
+<!--    }-->
+<!--  </style>-->
 </head>
 <body>
 <div id="register">
@@ -47,7 +47,7 @@
     <button type="submit">Delete</button>
   </form>
 </div>
-<div id="aichat">
+<div id="aichat" style="display: none;">
   <h1>Chat With ParaChan</h1>
   <form id="chat" onsubmit="sendMessage(event)">
     <input type="text" id="prompt" name="prompt" required>
@@ -55,6 +55,7 @@
   </form>
   <div id="message">Waiting for message...</div>
 </div>
+<button onclick="logout()">Logout</button>
 <script>
   const messageElement = document.getElementById("message");
   const ws = new WebSocket("ws://127.0.0.1:8000/ws");
@@ -131,6 +132,22 @@
     } else {
       alert(result.detail);
     }
+  }
+
+  async function checkSession() {
+    const response = await fetch('/check-session');
+    if (response.status === 200) {
+      document.getElementById('aichat').style.display = 'block';
+    } else {
+      document.getElementById('aichat').style.display = 'none';
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", checkSession);
+
+  async function logout() {
+    await fetch('/logout', { method: 'POST' });
+    window.location.href = "/";
   }
 </script>
 </body>
